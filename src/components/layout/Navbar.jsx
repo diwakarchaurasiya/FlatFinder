@@ -86,9 +86,11 @@ const Navbar = () => {
           >
             <FaHeart className="text-lg" />
           </Link>
-          <button className="btn btn-primary flex items-center">
-            <FaUserCircle className="mr-2" /> Sign In
-          </button>
+          <Link to="/login">
+            <button className="btn btn-primary flex items-center">
+              <FaUserCircle className="mr-2" /> Sign In
+            </button>
+          </Link>
         </div>
 
         {/* Mobile Toggle */}
@@ -149,7 +151,9 @@ const Navbar = () => {
           >
             Favorites
           </Link>
-          <button className="btn btn-primary w-full">Sign In</button>
+          <Link to="/login">
+            <button className="btn btn-primary w-full">Sign In</button>
+          </Link>
         </div>
       </div>
     </header>

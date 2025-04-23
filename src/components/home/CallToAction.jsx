@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom';
-import { FaHome, FaArrowRight } from 'react-icons/fa';
-import { useInView } from 'react-intersection-observer';
-import { motion } from 'framer-motion';
+import { Link } from "react-router-dom";
+import { FaHome, FaArrowRight } from "react-icons/fa";
+import { useInView } from "react-intersection-observer";
+import { motion } from "framer-motion";
 
 const CallToAction = () => {
   const { ref, inView } = useInView({
@@ -10,7 +10,7 @@ const CallToAction = () => {
   });
 
   return (
-    <section ref={ref} className="py-16 bg-secondary-700 text-white">
+    <section ref={ref} className="py-16 bg-neutral-100 text-gray-900">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center">
           <motion.div
@@ -18,16 +18,25 @@ const CallToAction = () => {
             animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.5 }}
           >
-            <FaHome className="text-5xl mx-auto mb-6 text-primary-300" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Find Your Perfect Home?</h2>
-            <p className="text-xl opacity-90 mb-8">
-              Join thousands of happy renters who found their ideal living space with FlatFinder's verified listings.
+            <FaHome className="text-4xl mx-auto mb-6 text-primary-600" />
+            <h2 className="text-3xl md:text-4xl font-semibold mb-4">
+              Ready to Find Your Perfect Home?
+            </h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Join thousands of happy renters who found their ideal space
+              through FlatFinder.
             </p>
             <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-              <Link to="/properties" className="btn bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-lg flex items-center justify-center">
-                Browse Properties <FaArrowRight className="ml-2" />
+              <Link
+                to="/properties"
+                className="px-6 py-3 rounded-md bg-primary-600 text-white hover:bg-primary-700 transition-colors flex items-center justify-center"
+              >
+                Browse Properties <FaArrowRight className="ml-2 text-sm" />
               </Link>
-              <Link to="/contact" className="btn bg-transparent border-2 border-white hover:bg-white hover:text-secondary-700 transition-colors px-8 py-3 rounded-lg flex items-center justify-center">
+              <Link
+                to="/contact"
+                className="px-6 py-3 rounded-md border border-primary-600 text-primary-600 hover:bg-primary-50 transition-colors flex items-center justify-center"
+              >
                 Contact Us
               </Link>
             </div>
