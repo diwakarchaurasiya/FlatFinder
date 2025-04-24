@@ -12,6 +12,22 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const tenantToken = localStorage.getItem("tenant_token");
+    const ownerToken = localStorage.getItem("owner_token");
+    setIsAuthenticated(!!tenantToken || !!ownerToken);
+  }, [location]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("tenant_token");
+    localStorage.removeItem("owner_token");
+    setIsAuthenticated(false);
+    alert("Logged out successfully!");
+    // Optional: navigate to login page or home
+    // window.location.href = "/login";
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -86,11 +102,15 @@ const Navbar = () => {
           >
             <FaHeart className="text-lg" />
           </Link>
-          <Link to="/login">
-            <button className="btn btn-primary flex items-center">
-              <FaUserCircle className="mr-2" /> Sign In
+          {isAuthenticated ? (
+            <button className="btn btn-primary w-full" onClick={handleLogout}>
+              Logout
             </button>
-          </Link>
+          ) : (
+            <Link to="/login">
+              <button className="btn btn-primary w-full">Sign In</button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile Toggle */}
@@ -151,9 +171,15 @@ const Navbar = () => {
           >
             Favorites
           </Link>
-          <Link to="/login">
-            <button className="btn btn-primary w-full">Sign In</button>
-          </Link>
+          {isAuthenticated ? (
+            <button className="btn btn-primary w-full" onClick={handleLogout}>
+              Logout
+            </button>
+          ) : (
+            <Link to="/login">
+              <button className="btn btn-primary w-full">Sign In</button>
+            </Link>
+          )}
         </div>
       </div>
     </header>
