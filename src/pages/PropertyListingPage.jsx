@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import PropertyCard from "../components/property/PropertyCard";
 import PropertyFilters from "../components/property/PropertyFilters";
 import { mockProperties } from "../data/mockData";
+import axios from "axios";
 
 const PropertyListingPage = () => {
   const [searchParams] = useSearchParams();
@@ -22,45 +23,55 @@ const PropertyListingPage = () => {
       behavior: "smooth",
     });
 
-    let filteredProps = [...mockProperties];
+    const fetchAndProcessProperties = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:5000/api/properties?limit=5"
+        );
+        let fetchedProps = res.data.data || [];
 
-    if (locationParam) {
-      filteredProps = filteredProps.filter((prop) =>
-        prop.location.toLowerCase().includes(locationParam.toLowerCase())
-      );
-    }
+        // Apply filters
+        if (locationParam) {
+          fetchedProps = fetchedProps.filter((prop) =>
+            `${prop.city}, ${prop.state}`
+              .toLowerCase()
+              .includes(locationParam.toLowerCase())
+          );
+        }
 
-    if (propertyTypeParam) {
-      filteredProps = filteredProps.filter(
-        (prop) => prop.category === propertyTypeParam
-      );
-    }
+        if (propertyTypeParam) {
+          fetchedProps = fetchedProps.filter(
+            (prop) => prop.type === propertyTypeParam
+          );
+        }
 
-    sortProperties(filteredProps, sortBy);
+        // Apply sorting
+        const sortedProps = sortProperties(fetchedProps, sortBy);
+        setProperties(sortedProps);
+      } catch (err) {
+        setError("Failed to fetch properties.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAndProcessProperties();
   }, [locationParam, propertyTypeParam, sortBy]);
 
-  const sortProperties = (props, sortType) => {
-    let sortedProps = [...props];
-
-    switch (sortType) {
-      case "price-low":
-        sortedProps.sort((a, b) => a.price - b.price);
-        break;
-      case "price-high":
-        sortedProps.sort((a, b) => b.price - a.price);
-        break;
+  const sortProperties = (props, sortKey) => {
+    switch (sortKey) {
+      case "lowToHigh":
+        return [...props].sort((a, b) => a.rent - b.rent);
+      case "highToLow":
+        return [...props].sort((a, b) => b.rent - a.rent);
       case "newest":
-        sortedProps.sort((a, b) => b.id - a.id);
-        break;
+        return [...props].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+      case "recommended":
       default:
-        sortedProps.sort((a, b) => {
-          const aBadges = a.badges ? a.badges.length : 0;
-          const bBadges = b.badges ? b.badges.length : 0;
-          return bBadges - aBadges;
-        });
+        return props; // or some other logic
     }
-
-    setProperties(sortedProps);
   };
 
   const handleApplyFilters = (filters) => {

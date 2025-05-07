@@ -1,16 +1,11 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
-import {
-  FaEnvelope,
-  FaLock,
-  FaHome,
-  FaUser,
-  FaPhone,
-  FaUserCircle,
-} from "react-icons/fa";
+import { FaEnvelope, FaLock, FaHome, FaUser, FaPhone } from "react-icons/fa";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // Import toast
+import "react-toastify/dist/ReactToastify.css"; // Import the necessary CSS for toast notifications
 
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -21,6 +16,7 @@ const AuthForm = () => {
     formState: { errors },
     reset,
   } = useForm();
+  const navigate = useNavigate(); // Initialize the navigate hook
 
   const onSubmit = async (data) => {
     try {
@@ -33,10 +29,15 @@ const AuthForm = () => {
       const tokenKey = userType === "tenant" ? "tenant_token" : "owner_token";
       localStorage.setItem(tokenKey, response.data.data.token);
 
-      alert(`${isLogin ? "Login" : "Registration"} successful!`);
+      toast.success(`${isLogin ? "Login" : "Registration"} successful!`); // Show success toast
       reset();
+
+      // Navigate to properties page after successful login
+      if (isLogin) {
+        navigate("/properties");
+      }
     } catch (err) {
-      alert(err?.response?.data?.message || "Something went wrong");
+      toast.error(err?.response?.data?.message || "Something went wrong"); // Show error toast
     }
   };
 

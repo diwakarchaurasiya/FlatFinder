@@ -1,39 +1,38 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import {
-  FaSearch,
-  FaHeart,
-  FaBars,
-  FaTimes,
-  FaUserCircle,
-} from "react-icons/fa";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { FaSearch, FaHeart, FaBars, FaTimes } from "react-icons/fa";
+import { ToastContainer, toast } from "react-toastify";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const tenantToken = localStorage.getItem("tenant_token");
     const ownerToken = localStorage.getItem("owner_token");
-    setIsAuthenticated(!!tenantToken || !!ownerToken);
+
+    if (ownerToken) setUserRole("owner");
+    else if (tenantToken) setUserRole("tenant");
+    else setUserRole(null);
   }, [location]);
+
+  const isAuthenticated = !!userRole;
 
   const handleLogout = () => {
     localStorage.removeItem("tenant_token");
     localStorage.removeItem("owner_token");
-    setIsAuthenticated(false);
-    alert("Logged out successfully!");
-    // Optional: navigate to login page or home
-    // window.location.href = "/login";
+    setUserRole(null);
+    toast.success("Logged out successfully!");
+    navigate("/login");
   };
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -89,19 +88,42 @@ const Navbar = () => {
         </nav>
 
         {/* Right Side for Desktop */}
-        <div className="hidden md:flex items-center space-x-4">
-          <Link
-            to="/properties"
-            className="text-neutral-800 hover:text-primary-500"
-          >
-            <FaSearch className="text-lg" />
-          </Link>
-          <Link
-            to="/favorites"
-            className="text-neutral-800 hover:text-primary-500"
-          >
-            <FaHeart className="text-lg" />
-          </Link>
+        <div className="hidden md:flex items-center space-x-4 whitespace-nowrap">
+          {userRole === "tenant" && (
+            <Link
+              to="/properties"
+              className="text-neutral-800 hover:text-primary-500"
+            >
+              <FaSearch className="text-lg" />
+            </Link>
+          )}
+          {userRole === "tenant" && (
+            <Link
+              to="/favorites"
+              className="text-neutral-800 hover:text-primary-500"
+            >
+              <FaHeart className="text-lg" />
+            </Link>
+          )}
+
+          {userRole === "owner" && (
+            <Link
+              to="/my-properties"
+              className="text-neutral-800 hover:text-primary-500 whitespace-nowrap text-sm"
+            >
+              My Properties
+            </Link>
+          )}
+
+          {userRole === "owner" && (
+            <Link
+              to="/add-property"
+              className="text-neutral-800 hover:text-primary-500 whitespace-nowrap text-sm"
+            >
+              Add Property
+            </Link>
+          )}
+
           {isAuthenticated ? (
             <button className="btn btn-primary w-full" onClick={handleLogout}>
               Logout
@@ -161,16 +183,38 @@ const Navbar = () => {
           >
             Contact
           </Link>
-          <Link
-            to="/favorites"
-            className={`text-neutral-800 py-2 text-lg ${
-              location.pathname === "/favorites"
-                ? "font-medium text-primary-500"
-                : ""
-            }`}
-          >
-            Favorites
-          </Link>
+
+          {userRole === "tenant" && (
+            <Link
+              to="/favorites"
+              className={`text-neutral-800 py-2 text-lg ${
+                location.pathname === "/favorites"
+                  ? "font-medium text-primary-500"
+                  : ""
+              }`}
+            >
+              Favorites
+            </Link>
+          )}
+
+          {userRole === "owner" && (
+            <>
+              <Link
+                to="/my-properties"
+                className={`text-neutral-800 py-2 text-lg ${
+                  location.pathname === "/my-properties"
+                    ? "font-medium text-primary-500"
+                    : ""
+                }`}
+              >
+                My Properties
+              </Link>
+              <Link to="/add-property">
+                <button className="btn btn-primary w-full">Add Property</button>
+              </Link>
+            </>
+          )}
+
           {isAuthenticated ? (
             <button className="btn btn-primary w-full" onClick={handleLogout}>
               Logout
@@ -182,6 +226,8 @@ const Navbar = () => {
           )}
         </div>
       </div>
+
+      <ToastContainer />
     </header>
   );
 };

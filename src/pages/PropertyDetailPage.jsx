@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import axios from "axios";
 import {
   FaBed,
   FaBath,
@@ -14,7 +15,6 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
-import { mockProperties } from "../data/mockData";
 import PropertyBadge from "../components/property/PropertyBadge";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
@@ -28,37 +28,60 @@ const PropertyDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isContactVisible, setIsContactVisible] = useState(false);
 
   useEffect(() => {
-    // Scroll to top when component mounts
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    const fetchProperty = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/api/properties/${id}`
+        );
+        if (res.data.success && res.data.data) {
+          const raw = res.data.data;
 
-    // Find property by ID
-    const propertyId = parseInt(id);
-    const foundProperty = mockProperties.find((p) => p.id === propertyId);
+          // Normalize structure for compatibility
+          const formatted = {
+            id: raw._id,
+            title: raw.title,
+            description: raw.description,
+            location: `${raw.address}, ${raw.city}, ${raw.state}`,
+            price: raw.rent,
+            isRent: true,
+            badges: [raw.type, raw.badge || raw.uploadedBy?.badge].filter(
+              Boolean
+            ),
+            bedrooms: raw.bedrooms || 1,
+            bathrooms: raw.bathrooms || 1,
+            sqft: raw.sqft || 500,
+            availableFrom: raw.createdAt,
+            furnished: raw.furnished || "Unfurnished",
+            amenities: raw.amenities || [],
+            images: raw.images.map((img) => img.url),
+            owner: {
+              name: raw.uploadedBy?.name || "Owner",
+              contact: raw.uploadedBy?.email || "N/A",
+              responseTime: "1–2 hours",
+            },
+          };
 
-    if (foundProperty) {
-      setProperty(foundProperty);
-      setIsFavorite(foundProperty.isFavorite || false);
-      setLoading(false);
-    } else {
-      setError("Property not found");
-      setLoading(false);
-    }
+          setProperty(formatted);
+        } else {
+          throw new Error("Invalid property data.");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load property. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperty();
   }, [id]);
 
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-  };
-
-  const toggleContact = () => {
-    setIsContactVisible(!isContactVisible);
-  };
+  const toggleFavorite = () => setIsFavorite(!isFavorite);
+  const toggleContact = () => setIsContactVisible(!isContactVisible);
 
   if (loading) {
     return (
@@ -98,16 +121,16 @@ const PropertyDetailPage = () => {
         <div className="text-sm text-neutral-500 mb-4">
           <Link to="/" className="hover:text-primary-500">
             Home
-          </Link>{" "}
+          </Link>
           {" > "}
           <Link to="/properties" className="hover:text-primary-500">
             Properties
-          </Link>{" "}
+          </Link>
           {" > "}
           <span className="text-neutral-700">{property.title}</span>
         </div>
 
-        {/* Property Title and Badges */}
+        {/* Title + Price */}
         <div className="flex flex-wrap justify-between items-start mb-6">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-secondary-800 mb-2">
@@ -118,25 +141,23 @@ const PropertyDetailPage = () => {
               <span>{property.location}</span>
             </div>
             <div className="flex flex-wrap gap-2 mb-2">
-              {property.badges &&
-                property.badges.map((badge, index) => (
-                  <PropertyBadge key={index} type={badge} />
-                ))}
+              {property.badges.map((badge, i) => (
+                <PropertyBadge key={i} type={badge} />
+              ))}
             </div>
           </div>
-          <div className="mt-4 md:mt-0">
-            <div className="text-xl md:text-2xl font-bold text-primary-600 flex items-center">
-              <FaRupeeSign className="mr-1" />
-              {property.price.toLocaleString()}
-              {property.isRent && (
-                <span className="text-neutral-500 font-normal text-base ml-1">
-                  /month
-                </span>
-              )}
-            </div>
+          <div className="mt-4 md:mt-0 text-xl md:text-2xl font-bold text-primary-600 flex items-center">
+            <FaRupeeSign className="mr-1" />
+            {property.price.toLocaleString()}
+            {property.isRent && (
+              <span className="text-neutral-500 font-normal text-base ml-1">
+                /month
+              </span>
+            )}
           </div>
         </div>
 
+        {/* Images */}
         <div className="mb-8">
           <Swiper
             modules={[Navigation, Pagination]}
@@ -146,11 +167,11 @@ const PropertyDetailPage = () => {
             pagination={{ clickable: true }}
             className="rounded-lg overflow-hidden aspect-[9/16] md:aspect-auto h-auto md:h-[500px]"
           >
-            {property.images.map((image, index) => (
-              <SwiperSlide key={index}>
+            {property.images.map((img, i) => (
+              <SwiperSlide key={i}>
                 <img
-                  src={image}
-                  alt={`${property.title} - Image ${index + 1}`}
+                  src={img}
+                  alt={`Image ${i + 1}`}
                   className="w-full h-full object-cover"
                 />
               </SwiperSlide>
@@ -158,46 +179,43 @@ const PropertyDetailPage = () => {
           </Swiper>
         </div>
 
-        {/* Property Details Section */}
+        {/* Main Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          {/* Left Column (2/3) */}
+          {/* Left */}
           <div className="lg:col-span-2">
             {/* Quick Info */}
             <div className="bg-white shadow-md rounded-lg p-6 mb-8">
               <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 border-r border-neutral-200">
-                  <div className="flex flex-col items-center">
-                    <FaBed className="text-2xl text-primary-500 mb-2" />
-                    <div>
-                      <div className="font-semibold text-lg">
-                        {property.bedrooms}
+                {[
+                  { icon: FaBed, label: "Bedrooms", value: property.bedrooms },
+                  {
+                    icon: FaBath,
+                    label: "Bathrooms",
+                    value: property.bathrooms,
+                  },
+                  {
+                    icon: FaRulerCombined,
+                    label: "Sq. Ft.",
+                    value: property.sqft,
+                  },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className="text-center p-4 border-r last:border-r-0 border-neutral-200"
+                  >
+                    <div className="flex flex-col items-center">
+                      <item.icon className="text-2xl text-primary-500 mb-2" />
+                      <div>
+                        <div className="font-semibold text-lg">
+                          {item.value}
+                        </div>
+                        <div className="text-neutral-500 text-sm">
+                          {item.label}
+                        </div>
                       </div>
-                      <div className="text-neutral-500 text-sm">Bedrooms</div>
                     </div>
                   </div>
-                </div>
-                <div className="text-center p-4 border-r border-neutral-200">
-                  <div className="flex flex-col items-center">
-                    <FaBath className="text-2xl text-primary-500 mb-2" />
-                    <div>
-                      <div className="font-semibold text-lg">
-                        {property.bathrooms}
-                      </div>
-                      <div className="text-neutral-500 text-sm">Bathrooms</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-center p-4">
-                  <div className="flex flex-col items-center">
-                    <FaRulerCombined className="text-2xl text-primary-500 mb-2" />
-                    <div>
-                      <div className="font-semibold text-lg">
-                        {property.sqft}
-                      </div>
-                      <div className="text-neutral-500 text-sm">Sq. Ft.</div>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
@@ -237,8 +255,8 @@ const PropertyDetailPage = () => {
                 Amenities
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {property.amenities.map((amenity, index) => (
-                  <div key={index} className="flex items-center">
+                {property.amenities.map((amenity, i) => (
+                  <div key={i} className="flex items-center">
                     <FaCheckCircle className="text-green-500 mr-2" />
                     <span>{amenity}</span>
                   </div>
@@ -247,43 +265,37 @@ const PropertyDetailPage = () => {
             </div>
           </div>
 
-          {/* Right Column (1/3) */}
+          {/* Contact Sidebar */}
           <div className="lg:col-span-1">
-            {/* Contact Card */}
             <div className="bg-white shadow-md rounded-lg p-6 mb-6 sticky top-24">
               <h3 className="text-lg font-semibold text-secondary-800 mb-4">
                 Contact Owner
               </h3>
-
-              <div className="mb-4">
-                <div className="flex items-center mb-2">
-                  <div className="w-10 h-10 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center mr-3">
-                    {property.owner.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="font-medium">{property.owner.name}</div>
-                    <div className="text-sm text-neutral-500">
-                      Property Owner
-                    </div>
-                  </div>
+              <div className="flex items-center mb-2">
+                <div className="w-10 h-10 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center mr-3">
+                  {property.owner.name.charAt(0)}
                 </div>
-                <div className="text-sm text-neutral-600 mt-2">
-                  <span>Response Time: </span>
-                  <span className="text-green-600 font-medium">
-                    {property.owner.responseTime}
-                  </span>
+                <div>
+                  <div className="font-medium">{property.owner.name}</div>
+                  <div className="text-sm text-neutral-500">Property Owner</div>
                 </div>
+              </div>
+              <div className="text-sm text-neutral-600 mt-2">
+                <span>Response Time: </span>
+                <span className="text-green-600 font-medium">
+                  {property.owner.responseTime}
+                </span>
               </div>
 
               {isContactVisible ? (
-                <div className="animate-fade-in">
+                <div className="animate-fade-in mt-4">
                   <div className="bg-neutral-50 p-3 rounded-md mb-4">
                     <div className="text-sm text-neutral-500 mb-1">
-                      Contact Number
+                      Contact Email
                     </div>
                     <div className="font-medium text-secondary-800 flex items-center">
                       <FaPhone className="mr-2 text-primary-500" />
-                      <a href={`tel:${property.owner.contact}`}>
+                      <a href={`mailto:${property.owner.contact}`}>
                         {property.owner.contact}
                       </a>
                     </div>

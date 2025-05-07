@@ -5,17 +5,16 @@ import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import ScrollToTop from "./components/utils/ScrollToTop";
 import ProtectedRoute from "./components/utils/ProtectedRoute"; // Adjust path if needed
+import { ToastContainer } from "react-toastify"; // Import ToastContainer from react-toastify
 
 import HomePage from "./pages/HomePage";
 import PropertyListingPage from "./pages/PropertyListingPage";
 import PropertyDetailPage from "./pages/PropertyDetailPage";
 import FavoritesPage from "./pages/FavoritesPage";
 import ContactPage from "./pages/ContactPage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import NotFoundPage from "./pages/NotFoundPage";
+import AuthForm from "./pages/AuthForm"; // Make sure the AuthForm page is in the correct path
 import ListPropertyForm from "./pages/ListPropertyForm";
-import AuthForm from "./pages/AuthForm";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
   useEffect(() => {
@@ -53,14 +52,12 @@ function App() {
 
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/login" element={<AuthForm />} />
-            {/* Optional auth components */}
-            {/* <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} /> */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>
         <Footer />
       </div>
+      <ToastContainer /> {/* Add ToastContainer outside Routes */}
     </Router>
   );
 }
