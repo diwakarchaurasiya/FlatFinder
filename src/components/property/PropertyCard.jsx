@@ -5,6 +5,8 @@ import PropertyBadge from "./PropertyBadge";
 import { motion } from "framer-motion";
 
 const PropertyCard = ({ property }) => {
+  if (!property) return null; // safety check
+
   const [isFavorite, setIsFavorite] = useState(property.isFavorite || false);
 
   const toggleFavorite = (e) => {
@@ -28,7 +30,7 @@ const PropertyCard = ({ property }) => {
         <Link to={`/property/${property._id}`}>
           <img
             src={firstImage}
-            alt={property.title}
+            alt={property.title || "Property"}
             className="w-full h-48 object-cover rounded-t-md"
           />
         </Link>
@@ -52,28 +54,36 @@ const PropertyCard = ({ property }) => {
       <div className="p-4">
         <Link to={`/property/${property._id}`}>
           <h3 className="text-lg font-semibold text-secondary-800 mb-1 hover:text-primary-500 transition-colors">
-            {property.title}
+            {property.title || "Untitled Property"}
           </h3>
         </Link>
         <p className="text-neutral-500 text-sm mb-1">
-          {property.address}, {property.city}
+          {property.address || "Unknown Address"}, {property.city || "City"}
         </p>
         <div className="text-primary-600 font-semibold text-md mb-2 flex items-center">
           <FaRupeeSign className="mr-1" />
-          <span>{property.rent.toLocaleString()}</span>
+          <span>
+            {typeof property.rent === "number"
+              ? property.rent.toLocaleString()
+              : "N/A"}
+          </span>
           <span className="text-neutral-500 font-normal text-sm ml-1">
             /month
           </span>
         </div>
         <p className="text-sm text-neutral-600 line-clamp-2">
-          {property.description}
+          {property.description || "No description available."}
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs text-neutral-700">
-          {property.amenities?.map((amenity, i) => (
-            <span key={i} className="px-2 py-1 bg-neutral-100 rounded-full">
-              {amenity}
-            </span>
-          ))}
+          {property.amenities?.length > 0 ? (
+            property.amenities.map((amenity, i) => (
+              <span key={i} className="px-2 py-1 bg-neutral-100 rounded-full">
+                {amenity}
+              </span>
+            ))
+          ) : (
+            <span className="text-neutral-400">No amenities listed</span>
+          )}
         </div>
       </div>
     </motion.div>

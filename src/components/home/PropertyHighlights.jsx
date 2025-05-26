@@ -26,7 +26,7 @@ const PropertyHighlights = ({ title, description, category, limit = 4 }) => {
         );
 
         if (res.data?.success && Array.isArray(res.data.data)) {
-          setProperties(res.data.data);
+          setProperties(res.data.data || []);
         } else {
           throw new Error("Unexpected API response structure");
         }
