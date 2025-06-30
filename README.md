@@ -2,7 +2,7 @@
 
 **FlatFinder** is a modern and responsive web application that helps users easily find rental flats, apartments, and PG accommodations across their city. Designed with a clean UI, powerful filters, and mobile-first approach — it makes renting effortless and intuitive.
 
-🔗 **Live Demo:** [www.gggoldfjkskf.com](https://flatfindergkp.netlify.app)
+🔗 **Live Demo:** [(https://flatfindergkp.netlify.app)](https://flatfindergkp.netlify.app/)
 
 ---
 
